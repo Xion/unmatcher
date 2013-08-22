@@ -1,41 +1,33 @@
 """
-unmatcher
-=========
-
-Regular expression reverser for Python
-
-:author: Karol Kuczmarski "Xion"
+unmatcher :: Regular expression reverser for Python
 """
+__version__ = "0.0.1"
+__author__ = "Karol Kuczmarski"
+__license__ = "Simplified BSD"
+
+
 import random
 import re
+import string
 
 
-__all__ = ['reverse', 'Unmatcher']
+__all__ = ['reverse']
 
 
-def reverse(regex):
-    return Unmatcher(regex).reverse()
+def reverse(pattern, groups=None, **kwargs):
+    if not isinstance(pattern, basestring):
+        pattern = pattern.pattern  # assuming regex object
+    regex_ast = re.sre_parse.parse(pattern).data
 
+    groups = groups or {}
 
-class Unmatcher(object):
-
-    def __init__(self, pattern):
-        if not isinstance(pattern, basestring):
-            pattern = pattern.pattern  # assuming regex object
-        self.regex_ast = re.sre_parse.parse(pattern).data
-
-    def __call__(self, *args, **kwargs):
-        return self.reverse(*args, **kwargs)
-
-    def reverse(self, groups=None, **kwargs):
-        reversal = RegexReversal(self.regex_ast,
-                                 groups=groups or {}, **kwargs)
-        return reversal.perform()
+    reversal = Reversal(regex_ast, groups=groups, **kwargs)
+    return reversal.perform()
 
 
 # Implementation
 
-class RegexReversal(object):
+class Reversal(object):
 
     def __init__(self, regex_ast, **kwargs):
         self.regex_ast = regex_ast
