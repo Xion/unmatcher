@@ -6,6 +6,9 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
+# TODO: add tests
+
+
 import random
 import re
 import string
@@ -15,6 +18,15 @@ __all__ = ['reverse']
 
 
 def reverse(pattern, *args, **kwargs):
+    """Reverse the regular expression, returning a string that would match it.
+
+    :param pattern: Regular expression pattern, either compiled one or a string
+
+    Additional arguments (positional and keyword) will be used to supply
+    predefined string matches for capture groups present in the ``pattern``.
+
+    :return: String that matches ``pattern``
+    """
     if not isinstance(pattern, basestring):
         pattern = pattern.pattern  # assuming regex object
 
@@ -48,6 +60,8 @@ def resolve_groupvals(sre_pattern, groupvals):
     group_count = sre_pattern.groups
     names2indices = sre_pattern.groupdict
 
+    # TODO: detect surplus keys in ``groupvals`` that do not match
+    # any actual capture group inside ``sre_pattern``
     groups = [None] * group_count
     for ref, value in groupvals.iteritems():
         index = names2indices.get(ref, ref)
@@ -60,6 +74,7 @@ def resolve_groupvals(sre_pattern, groupvals):
 
 
 class Reversal(object):
+    """Encapsulates the reversal process of a single regular expression."""
 
     BUILTIN_CHARSETS = {
         'any': string.printable,  # matches . (dot)
