@@ -14,18 +14,50 @@ import string
 __all__ = ['reverse']
 
 
-def reverse(pattern, groups=None, **kwargs):
+def reverse(pattern, *args, **kwargs):
     if not isinstance(pattern, basestring):
         pattern = pattern.pattern  # assuming regex object
-    regex_ast = re.sre_parse.parse(pattern).data
 
-    groups = groups or {}
+    sre_subpattern = re.sre_parse.parse(pattern)
 
-    reversal = Reversal(regex_ast, groups=groups, **kwargs)
+    # use positional and keyword arguments, if any, to build the initial array
+    # of capture group values that will be used by the reverser
+    groupvals = kwargs or {}
+    for i, value in enumerate(args, 1):
+        if i in groupvals:
+            raise TypeError(
+                "reverse() got multiple values for capture group '%s'" % i)
+        groupvals[i] = value
+    groups = resolve_groupvals(sre_subpattern.pattern, kwargs or {})
+
+    reversal = Reversal(regex_ast=sre_subpattern.data, groups=groups, **kwargs)
     return reversal.perform()
 
 
 # Implementation
+
+def resolve_groupvals(sre_pattern, groupvals):
+    """Resolve a dictionary of capture group values (mapped from either
+    their names or indices), returning an array of those values ("mapped" only
+    from capture groups indices).
+
+    :param sre_pattern: A ``sre_parse.Pattern`` object
+    :param groupvals: Dictionary mapping capture group names **or** indices
+                      into string values for those groups
+    """
+    group_count = sre_pattern.groups
+    names2indices = sre_pattern.groupdict
+
+    groups = [None] * group_count
+    for ref, value in groupvals.iteritems():
+        index = names2indices.get(ref, ref)
+        try:
+            groups[index] = value
+        except (TypeError, IndexError):
+            raise ValueError("invalid capture group reference: %s" % ref)
+
+    return groups
+
 
 class Reversal(object):
 
@@ -39,7 +71,7 @@ class Reversal(object):
 
     def __init__(self, regex_ast, **kwargs):
         self.regex_ast = regex_ast
-        self.groupdict = kwargs.get('groupdict', {})  # NYI
+        self.groups = kwargs.get('groups', [None])  # NYI
 
     def perform(self):
         return self._reverse_nodes(self.regex_ast)
@@ -60,12 +92,16 @@ class Reversal(object):
 
         if type_ == 'in':
             return self._reverse_choice_node(data)
-        if type_ in ('min_repeat', 'max_repeat'):
-            return self._reverse_repeat_node(data)
         if type_ == 'branch':
             return self._reverse_branch_node(data)
+
+        if type_ in ('min_repeat', 'max_repeat'):
+            return self._reverse_repeat_node(data)
+
         if type_ == 'subpattern':
             return self._reverse_subpattern_node(data)
+        if type_ == 'groupref':
+            return self._reverse_groupref_node(data)
 
         if type_ == 'at':
             return ''   # match-beginning (^) or match-end ($);
@@ -125,10 +161,10 @@ class Reversal(object):
 
         max_count = min(max_count, self.MAX_REPEAT)
         count = random.randint(min_count, max_count)
-        return ''.join(self._reverse_node(what) for _ in xrange(count))
+        return self._reverse_nodes([what] * count)
 
     def _reverse_branch_node(self, node_data):
-        """Generates string matching 'branch' node in regular expr. AST
+        """Generates string matching 'branch' node in regular expr. AST.
 
         This node is similar to 'in', in a sens that it's also an alternative
         between several variants. However, each variant here can consist
@@ -142,4 +178,29 @@ class Reversal(object):
         return self._reverse_nodes(nodes)
 
     def _reverse_subpattern_node(self, node_data):
-        raise NotImplementedError()
+        """Generates string matching 'subpattern' node in regular expr. AST.
+
+        This node corresponds to parenthesised group inside the expression.
+        If this is a capture group, the reversed result is memorized
+        so that it can be used when referring back to the capture through
+        ``\1``, etc.
+        """
+        index, nodes = node_data
+
+        # reverse subpattern and remember the result if it's new capture group
+        result = self._reverse_nodes(nodes)
+        if index is not None and self.groups[index] is None:
+            self.groups[index] = result
+
+        return result
+
+    def _reverse_groupref_node(self, node_data):
+        """Generates string matching 'groupref' node in regular expr. AST.
+
+        This node is a (back)reference to previously matched capture group.
+        """
+        # AST always refers to capture groups by index,
+        # and detects circular/forward references at parse time,
+        # so handling of this node can be indeed very simple
+        index = node_data
+        return self.groups[index]
