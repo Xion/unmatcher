@@ -42,8 +42,14 @@ class Reversal(object):
         self.groupdict = kwargs.get('groupdict', {})  # NYI
 
     def perform(self):
+        return self._reverse_nodes(self.regex_ast)
+
+    def _reverse_nodes(self, nodes):
+        """Generates string matching given sequence of nodes
+        from regular expressions' abstract syntax tree (AST).
+        """
         # TODO: preserve unicodeness/ANSIness in Python 2
-        return ''.join(map(self._reverse_node, self.regex_ast))
+        return ''.join(map(self._reverse_node, nodes))
 
     def _reverse_node(self, (type_, data)):
         """Generates string matching given node from regular expression AST."""
@@ -53,9 +59,13 @@ class Reversal(object):
             return random.choice(self.BUILTIN_CHARSETS['any'])
 
         if type_ == 'in':
-            return self._reverse_charset_node(data)
+            return self._reverse_choice_node(data)
         if type_ in ('min_repeat', 'max_repeat'):
             return self._reverse_repeat_node(data)
+        if type_ == 'branch':
+            return self._reverse_branch_node(data)
+        if type_ == 'subpattern':
+            return self._reverse_subpattern_node(data)
 
         if type_ == 'at':
             return ''   # match-beginning (^) or match-end ($);
@@ -64,15 +74,18 @@ class Reversal(object):
         # TODO: add support for the rest of regex syntax elements
         raise ValueError("unsupported regular expression element: %s" % type_)
 
-    def _reverse_charset_node(self, node_data):
+    def _reverse_choice_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
 
-        This node matches a set of characters:
-
-        * a built-in one (``\w``, ``\d``, etc.),
-        * an ad-hoc one (``[a-z]``, ``[123abc]``, etc.),
-        * or a combination of those (``[a-z\d])``, etc.)
+        This node is an alternative between several variants (child nodes),
+        incl. some that are not encountered in other places
+        (character sets, for example).
         """
+        # TODO: charset variants might be of different size
+        # (wrt to no. of chars they match), but they are all assigned
+        # the same weight in the random.choice() below (along with non-charset
+        # variants) - e.g. [a-cd] has the same chance to pick `a-c` or `d`;
+        # see about correcting that (how about non-charset variants, though?)
         chosen = random.choice(node_data)
         type_, data = chosen
 
@@ -86,7 +99,7 @@ class Reversal(object):
         if type_ == 'category':
             return self._reverse_builtin_charset_node(data)
 
-        raise Exception("unexpected charset node: %s" % type_)
+        return self._reverse_node(chosen)
 
     def _reverse_builtin_charset_node(self, node_data):
         """Generates string matching 'category' node from regular expr. AST.
@@ -113,3 +126,20 @@ class Reversal(object):
         max_count = min(max_count, self.MAX_REPEAT)
         count = random.randint(min_count, max_count)
         return ''.join(self._reverse_node(what) for _ in xrange(count))
+
+    def _reverse_branch_node(self, node_data):
+        """Generates string matching 'branch' node in regular expr. AST
+
+        This node is similar to 'in', in a sens that it's also an alternative
+        between several variants. However, each variant here can consist
+        of more then one node.
+        """
+        # TODO: figure out what the first value is; for all typical expressions
+        # (a|bb|c, etc.) it seems to be always ``None``
+        _, variants = node_data
+
+        nodes = random.choice(variants)
+        return self._reverse_nodes(nodes)
+
+    def _reverse_subpattern_node(self, node_data):
+        raise NotImplementedError()
