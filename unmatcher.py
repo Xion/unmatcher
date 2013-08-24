@@ -69,9 +69,9 @@ class Reversal(object):
     }
     MAX_REPEAT = 64
 
-    def __init__(self, regex_ast, **kwargs):
+    def __init__(self, regex_ast, groups=None):
         self.regex_ast = regex_ast
-        self.groups = kwargs.get('groups', [None])  # NYI
+        self.groups = groups or [None]
 
     def perform(self):
         return self._reverse_nodes(self.regex_ast)
@@ -187,10 +187,12 @@ class Reversal(object):
         """
         index, nodes = node_data
 
-        # reverse subpattern and remember the result if it's new capture group
-        result = self._reverse_nodes(nodes)
-        if index is not None and self.groups[index] is None:
-            self.groups[index] = result
+        if index is None:
+            return self._reverse_nodes(nodes)  # non-capture group
+
+        result = self.groups[index]
+        if result is None:
+            result = self.groups[index] = self._reverse_nodes(nodes)
 
         return result
 
