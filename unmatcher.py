@@ -6,9 +6,6 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-# TODO: add tests
-
-
 import random
 import re
 import string
@@ -77,7 +74,7 @@ class Reversal(object):
     """Encapsulates the reversal process of a single regular expression."""
 
     BUILTIN_CHARSETS = {
-        'any': string.printable,  # matches . (dot)
+        'any': string.printable,  # matches . (dot) # TODO: handle re.DOTALL
         'word': string.ascii_letters,
         'digit': string.digits,
         'space': string.whitespace,
