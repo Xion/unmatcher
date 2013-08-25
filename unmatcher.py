@@ -24,8 +24,12 @@ def reverse(pattern, *args, **kwargs):
 
     :return: String that matches ``pattern``
     """
-    if not isinstance(pattern, basestring):
-        pattern = pattern.pattern  # assuming regex object
+    if isinstance(pattern, basestring):
+        flags = None
+    else:
+        # assuming regex object
+        flags = pattern.flags
+        pattern = pattern.pattern
 
     sre_subpattern = re.sre_parse.parse(pattern)
 
@@ -39,7 +43,7 @@ def reverse(pattern, *args, **kwargs):
         groupvals[i] = value
     groups = resolve_groupvals(sre_subpattern.pattern, kwargs or {})
 
-    reversal = Reversal(regex_ast=sre_subpattern.data, groups=groups, **kwargs)
+    reversal = Reversal(sre_subpattern.data, flags=flags, groups=groups)
     return reversal.perform()
 
 
@@ -74,19 +78,25 @@ class Reversal(object):
     """Encapsulates the reversal process of a single regular expression."""
 
     BUILTIN_CHARSETS = {
-        'any': string.printable,  # matches . (dot) # TODO: handle re.DOTALL
         'word': string.ascii_letters,
         'digit': string.digits,
         'space': string.whitespace,
     }
     MAX_REPEAT = 64
 
-    def __init__(self, regex_ast, groups=None):
+    def __init__(self, regex_ast, flags=None, groups=None):
+        """Constructor.
+
+        Use keywords to pass arguments other than ``regex_ast``.
+        """
         self.regex_ast = regex_ast
+        self.flags = flags or 0
         self.groups = groups or [None]
 
     def perform(self):
         return self._reverse_nodes(self.regex_ast)
+
+    # Reversing regex AST nodes
 
     def _reverse_nodes(self, nodes):
         """Generates string matching given sequence of nodes
@@ -100,7 +110,7 @@ class Reversal(object):
         if type_ == 'literal':
             return chr(data)
         if type_ == 'any':
-            return random.choice(self.BUILTIN_CHARSETS['any'])
+            return random.choice(self._charset('any'))
 
         if type_ == 'in':
             return self._reverse_choice_node(data)
@@ -157,9 +167,10 @@ class Reversal(object):
         _, type_ = node_data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
         negate = '_not_' in node_data
 
-        charset = self.BUILTIN_CHARSETS[type_]
+        charset = self._charset(type_)
         if negate:
-            charset = list(set(self.BUILTIN_CHARSETS['any']) - set(charset))
+            all_chars = self._charset('any', flags=0)
+            charset = list(set(all_chars) - set(charset))
         return random.choice(charset)
 
     def _reverse_repeat_node(self, node_data):
@@ -218,3 +229,25 @@ class Reversal(object):
         # so handling of this node can be indeed very simple
         index = node_data
         return self.groups[index]
+
+    # Utility functions
+
+    def _charset(self, name, flags=None):
+        """Return chars belonging to charset of given name.
+        :param flags: Optional flags override
+        """
+        flags = self.flags if flags is None else flags
+
+        if name == 'any':
+            if flags & re.DOTALL:
+                return string.printable
+            else:
+                visible_chars = ''.join(
+                    v for k, v in self.BUILTIN_CHARSETS.iteritems()
+                    if k != 'space')
+                return visible_chars + ' '
+
+        if name in self.BUILTIN_CHARSETS:
+            return self.BUILTIN_CHARSETS[name]
+
+        raise ValueError("invalid charset name '%s'" % name)
