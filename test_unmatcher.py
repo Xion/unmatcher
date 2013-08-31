@@ -30,22 +30,10 @@ def test_any(_, flags):
 
 
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT, **str_args('left', 'right'))
-def test_branch_double(left, right):
+def test_branch(left, right):
     branch_re = re.compile('|'.join(map(re.escape, (left, right))))
     reversed_branch = unmatcher.reverse(branch_re)
     assert reversed_branch in (left, right)
-
-
-@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
-                       **str_args('first', 'second', 'third'))
-def test_branch_triple(first, second, third):
-    branch_re = re.compile('|'.join(map(re.escape, (first, second, third))))
-    reversed_branch = unmatcher.reverse(branch_re)
-    assert reversed_branch in (first, second, third)
-
-
-# TODO: eliminate repetition in above tests by devising a more general variant
-#       that would also verify a more diverse set of test cases
 
 
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
@@ -116,8 +104,37 @@ def test_repeat_range(lower_bound, upper_bound, char):
         assert char == chunk
 
 
-# TODO: test non-capture groups: (?:foo)bar
-# TODO: test capture groups without backreferences: (foo)bar, (?P<huh>foo)bar
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       **str_args('ingroup', 'outgroup'))
+def test_noncapture_group(ingroup, outgroup):
+    the_re = re.compile('(?:%s)%s' % (ingroup, outgroup))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert len(match.groups()) == 0
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       **str_args('ingroup', 'outgroup'))
+def test_group_sans_backrefs(ingroup, outgroup):
+    the_re = re.compile('(%s)%s' % (ingroup, outgroup))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groups() == (ingroup,)
+
+
+@pytest.mark.randomize(ncalls=4,
+                       **str_args('groupname', 'ingroup', 'outgroup'))
+def test_named_group_sans_backrefs(groupname, ingroup, outgroup):
+    groupname = 'a' + groupname  # cannot start with digit
+    the_re = re.compile('(?P<%s>%s)%s' % (groupname, ingroup, outgroup))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groupdict() == {groupname: ingroup}
+
+
 # TODO: test capture groups with backreferences: (foo)bar\1, (?P<huh>foo)bar(?P=huh)
 
 
