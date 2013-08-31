@@ -9,6 +9,8 @@ import pytest
 
 
 DEFAULT_TESTS_COUNT = 32
+SMALL_TESTS_COUNT = 4  # used when default count would explode no. of tests
+
 DEFAULT_CHARACTER_SETS = ('ascii_letters', 'digits')
 
 str_arg = lambda name: {name: str, 'str_attrs': DEFAULT_CHARACTER_SETS}
@@ -78,9 +80,7 @@ def test_repeat_symbols(symbol, char):
             assert char == chunk
 
 
-# NOTE: total number of test cases here is ncalls * (max_num - min_num) ** 2
-#       so be careful if not setting the parameters too high
-@pytest.mark.randomize(ncalls=4,
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        lower_bound=int, upper_bound=int, min_num=0, max_num=4,
                        fixed_length=1, **str_arg('char'))
 def test_repeat_range(lower_bound, upper_bound, char):
@@ -124,7 +124,7 @@ def test_group_sans_backrefs(ingroup, outgroup):
     assert match.groups() == (ingroup,)
 
 
-@pytest.mark.randomize(ncalls=4,
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'ingroup', 'outgroup'))
 def test_named_group_sans_backrefs(groupname, ingroup, outgroup):
     groupname = 'a' + groupname  # cannot start with digit
@@ -145,7 +145,7 @@ def test_group_with_backrefs(ingroup, outgroup):
     assert match.groups() == (ingroup,)
 
 
-@pytest.mark.randomize(ncalls=4,
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'ingroup', 'outgroup'))
 def test_named_group_with_backrefs(groupname, ingroup, outgroup):
     groupname = 'a' + groupname  # cannot start with digit
