@@ -135,7 +135,26 @@ def test_named_group_sans_backrefs(groupname, ingroup, outgroup):
     assert match.groupdict() == {groupname: ingroup}
 
 
-# TODO: test capture groups with backreferences: (foo)bar\1, (?P<huh>foo)bar(?P=huh)
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       **str_args('ingroup', 'outgroup'))
+def test_group_with_backrefs(ingroup, outgroup):
+    the_re = re.compile(r'(%s)%s\1' % (ingroup, outgroup))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groups() == (ingroup,)
+
+
+@pytest.mark.randomize(ncalls=4,
+                       **str_args('groupname', 'ingroup', 'outgroup'))
+def test_named_group_with_backrefs(groupname, ingroup, outgroup):
+    groupname = 'a' + groupname  # cannot start with digit
+    the_re = re.compile(
+        '(?P<%s>%s)%s(?P=%s)' % (groupname, ingroup, outgroup, groupname))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groupdict() == {groupname: ingroup}
 
 
 # Utility functions
