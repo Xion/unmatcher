@@ -130,7 +130,8 @@ class Reversal(object):
                         # irrelevant for string generation
 
         # TODO: add support for the rest of regex syntax elements
-        raise ValueError("unsupported regular expression element: %s" % type_)
+        raise NotImplementedError(
+            "unsupported regular expression element: %s" % type_)
 
     def _reverse_choice_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
@@ -139,6 +140,12 @@ class Reversal(object):
         incl. some that are not encountered in other places
         (character sets, for example).
         """
+        first, _ = node_data[0]
+        if first == 'negate':
+            # TODO: support this
+            raise NotImplementedError(
+                "negated character sets [^...] are not supported")
+
         # TODO: charset variants might be of different size
         # (wrt to no. of chars they match), but they are all assigned
         # the same weight in the random.choice() below (along with non-charset
@@ -149,7 +156,6 @@ class Reversal(object):
 
         # range (e.g. a-z) inside [ ]
         if type_ == 'range':
-            # TODO: add support for negation: [^...]
             min_char, max_char = data
             return chr(random.randint(min_char, max_char))
 

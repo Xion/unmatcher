@@ -20,7 +20,7 @@ str_args = lambda *names: dict([(name, str) for name in names] +
 
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT, **str_arg('expr'))
 def test_literal(expr):
-    assert expr == unmatcher.reverse(expr)
+    assert expr == unmatcher.reverse(re.escape(expr))
 
 
 @pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
@@ -64,6 +64,13 @@ def test_charset_class(class_):
     charset_re = re.compile(r'\%s' % class_)
     reversed_charset = unmatcher.reverse(charset_re)
     assert bool(charset_re.match(reversed_charset))
+
+
+def test_charset_negate():
+    """[^...] is not implemented, but it should bail with known exception."""
+    charset_re = re.compile('[^abc]')
+    with pytest.raises(NotImplementedError):
+        unmatcher.reverse(charset_re)
 
 
 @pytest.mark.parametrize('symbol', ('+', '*'))
