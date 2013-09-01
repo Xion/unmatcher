@@ -41,7 +41,7 @@ def reverse(pattern, *args, **kwargs):
             raise TypeError(
                 "reverse() got multiple values for capture group '%s'" % i)
         groupvals[i] = value
-    groups = resolve_groupvals(sre_subpattern.pattern, kwargs or {})
+    groups = resolve_groupvals(sre_subpattern.pattern, groupvals)
 
     reversal = Reversal(sre_subpattern.data, flags=flags, groups=groups)
     return reversal.perform()

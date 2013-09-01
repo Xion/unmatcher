@@ -157,6 +157,9 @@ def test_named_group_with_backrefs(groupname, ingroup, outgroup):
     assert match.groupdict() == {groupname: ingroup}
 
 
+# TODO: test predefined values for capture groups: reverse(r'(\w+)\1', 'foo') etc.
+
+
 # Utility functions
 
 def chunks(seq, n):
