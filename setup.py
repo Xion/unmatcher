@@ -25,7 +25,8 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        # TODO: add more domain-specific classifiers
+        "Topic :: Software Development :: Testing",
+        "Topic :: Text Processing :: General",
     ],
 
     platforms='any',
