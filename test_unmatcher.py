@@ -157,7 +157,25 @@ def test_named_group_with_backrefs(groupname, ingroup, outgroup):
     assert match.groupdict() == {groupname: ingroup}
 
 
-# TODO: test predefined values for capture groups: reverse(r'(\w+)\1', 'foo') etc.
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       **str_args('ingroup', 'outgroup'))
+def test_group_with_value(ingroup, outgroup):
+    the_re = re.compile(r'(.*)%s' % outgroup)
+    reversed_re = unmatcher.reverse(the_re, ingroup)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groups() == (ingroup,)
+
+
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
+                       **str_args('groupname', 'ingroup', 'outgroup'))
+def test_named_group_with_value(groupname, ingroup, outgroup):
+    groupname = 'a' + groupname  # cannot start with digit
+    the_re = re.compile(r'(?P<%s>.*)%s' % (groupname, outgroup))
+    reversed_re = unmatcher.reverse(the_re, **{groupname: ingroup})
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groupdict() == {groupname: ingroup}
 
 
 # Utility functions
