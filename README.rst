@@ -15,6 +15,10 @@ in automatic generation of test cases for string processing functions.
 Status
 ~~~~~~
 
+.. image:: https://secure.travis-ci.org/Xion/unmatcher.png
+   :alt: Build Status
+   :target: http://travis-ci.org/Xion/unmatcher
+
 Most typical elements of regexes are supported:
 ``*``, ``+``, ``|``, ``( )`` (capture groups), ``\d|\w|\s`` (character classes), ``[]`` (character sets).
 
