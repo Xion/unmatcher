@@ -9,6 +9,7 @@ __license__ = "Simplified BSD"
 import random
 import re
 import string
+import sys
 
 
 __all__ = ['reverse']
@@ -43,7 +44,8 @@ def reverse(pattern, *args, **kwargs):
         groupvals[i] = value
     groups = resolve_groupvals(sre_subpattern.pattern, groupvals)
 
-    reversal = Reversal(sre_subpattern.data, flags=flags, groups=groups)
+    reversal = Reversal(sre_subpattern.data, flags=flags, groups=groups,
+                        string_class=type(pattern))
     return reversal.perform()
 
 
@@ -84,7 +86,7 @@ class Reversal(object):
     }
     MAX_REPEAT = 64
 
-    def __init__(self, regex_ast, flags=None, groups=None):
+    def __init__(self, regex_ast, flags=None, groups=None, string_class=None):
         """Constructor.
 
         Use keywords to pass arguments other than ``regex_ast``.
@@ -92,6 +94,12 @@ class Reversal(object):
         self.regex_ast = regex_ast
         self.flags = flags or 0
         self.groups = groups or [None]
+
+        # use correct string class depending on Python version or argument
+        if string_class is None:
+            string_class = unicode if sys.version[0] == '2' else str
+        self._str = string_class
+        self._chr = unichr if string_class.__name__ == 'unicode' else chr
 
     def perform(self):
         return self._reverse_nodes(self.regex_ast)
@@ -102,13 +110,12 @@ class Reversal(object):
         """Generates string matching given sequence of nodes
         from regular expressions' abstract syntax tree (AST).
         """
-        # TODO: preserve unicodeness/ANSIness in Python 2
-        return ''.join(map(self._reverse_node, nodes))
+        return self._str().join(map(self._reverse_node, nodes))
 
     def _reverse_node(self, (type_, data)):
         """Generates string matching given node from regular expression AST."""
         if type_ == 'literal':
-            return chr(data)
+            return self._chr(data)
         if type_ == 'any':
             return random.choice(self._charset('any'))
 
@@ -157,7 +164,7 @@ class Reversal(object):
         # range (e.g. a-z) inside [ ]
         if type_ == 'range':
             min_char, max_char = data
-            return chr(random.randint(min_char, max_char))
+            return self._chr(random.randint(min_char, max_char))
 
         # built-in character set: \d, \w, etc.
         if type_ == 'category':
@@ -248,10 +255,10 @@ class Reversal(object):
             if flags & re.DOTALL:
                 return string.printable
             else:
-                visible_chars = ''.join(
+                visible_chars = self._str().join(
                     v for k, v in self.BUILTIN_CHARSETS.iteritems()
                     if k != 'space')
-                return visible_chars + ' '
+                return visible_chars + self._str(" ")
 
         if name in self.BUILTIN_CHARSETS:
             return self.BUILTIN_CHARSETS[name]
