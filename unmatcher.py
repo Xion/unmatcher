@@ -1,7 +1,7 @@
 """
 unmatcher :: Regular expression reverser for Python
 """
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
