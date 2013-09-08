@@ -171,23 +171,11 @@ class Reversal(object):
 
         # built-in character set: \d, \w, etc.
         if type_ == 'category':
-            return self._reverse_builtin_charset_node(data)
+            _, which = data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
+            charset = self._charset(which, negate='_not_' in data)
+            return random.choice(charset)
 
         return self._reverse_node(chosen)
-
-    def _reverse_builtin_charset_node(self, node_data):
-        """Generates string matching 'category' node from regular expr. AST.
-
-        This node matches a built-in set of characters, like ``\d`` or ``\w``.
-        """
-        _, type_ = node_data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
-        negate = '_not_' in node_data
-
-        charset = self._charset(type_)
-        if negate:
-            all_chars = self._charset('any', flags=0)
-            charset = list(set(all_chars) - set(charset))
-        return random.choice(charset)
 
     def _reverse_repeat_node(self, node_data):
         """Generates string matching 'min_repeat' or 'max_repeat' node
@@ -246,10 +234,11 @@ class Reversal(object):
         index = node_data
         return self.groups[index]
 
-    # Utility functions
+    # Handling character sets
 
-    def _charset(self, name, flags=None):
+    def _charset(self, name, negate=False, flags=None):
         """Return chars belonging to charset of given name.
+        :param negate: Whether to return a negated version of the charset
         :param flags: Optional flags override
         """
         flags = self.flags if flags is None else flags
@@ -264,6 +253,10 @@ class Reversal(object):
                 return visible_chars + self._str(" ")
 
         if name in self.BUILTIN_CHARSETS:
-            return self.BUILTIN_CHARSETS[name]
+            charset = self.BUILTIN_CHARSETS[name]
+            if negate:
+                all_chars = self._charset('any', flags=0)
+                charset = list(set(all_chars) - set(charset))
+            return charset
 
         raise ValueError("invalid charset name '%s'" % name)
