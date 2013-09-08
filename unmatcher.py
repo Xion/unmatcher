@@ -6,6 +6,11 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
+try:
+    from itertools import imap
+except ImportError:
+    imap = map  # Python 3
+
 import random
 import re
 import string
@@ -113,7 +118,7 @@ class Reversal(object):
         """Generates string matching given sequence of nodes
         from regular expressions' abstract syntax tree (AST).
         """
-        return self._str().join(map(self._reverse_node, nodes))
+        return self._str().join(imap(self._reverse_node, nodes))
 
     def _reverse_node(self, (type_, data)):
         """Generates string matching given node from regular expression AST."""
@@ -123,7 +128,7 @@ class Reversal(object):
             return random.choice(self._charset('any'))
 
         if type_ == 'in':
-            return self._reverse_choice_node(data)
+            return self._reverse_charset_node(data)
         if type_ == 'branch':
             return self._reverse_branch_node(data)
 
@@ -143,39 +148,37 @@ class Reversal(object):
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
 
-    def _reverse_choice_node(self, node_data):
+    def _reverse_charset_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
 
-        This node is an alternative between several variants (child nodes),
-        incl. some that are not encountered in other places
-        (character sets, for example).
+        This node matches a specified set of characters. Typically,
+        it is expressed using the ``[...]`` notation, but it can also arise
+        from simple uses of ``|`` operator, where all branches match
+        just one, literal character (e.g. ``a|b|c``).
         """
-        first, _ = node_data[0]
-        if first == 'negate':
-            # TODO: support this
-            raise NotImplementedError(
-                "negated character sets [^...] are not supported")
+        negate = node_data[0][0] == 'negate'
+        if negate:
+            node_data = node_data[1:]
 
-        # TODO: charset variants might be of different size
-        # (wrt to no. of chars they match), but they are all assigned
-        # the same weight in the random.choice() below (along with non-charset
-        # variants) - e.g. [a-cd] has the same chance to pick `a-c` or `d`;
-        # see about correcting that (how about non-charset variants, though?)
-        chosen = random.choice(node_data)
-        type_, data = chosen
+        charset = set()
+        for type_, data in node_data:
+            if type_ == 'literal':
+                charset.add(self._chr(data))
+            elif type_ == 'range':
+                min_char, max_char = data
+                charset.update(imap(self._chr, xrange(min_char, max_char + 1)))
+            elif type_ == 'category':
+                _, what = data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
+                charset.update(self._charset(what, negate='_not_' in data))
+            else:
+                raise ValueError("invalid choice alternative: %s" % type_)
 
-        # range (e.g. a-z) inside [ ]
-        if type_ == 'range':
-            min_char, max_char = data
-            return self._chr(random.randint(min_char, max_char))
+        if negate:
+            all_chars = self._charset('any', flags=0)
+            charset = set(all_chars) - charset
 
-        # built-in character set: \d, \w, etc.
-        if type_ == 'category':
-            _, which = data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
-            charset = self._charset(which, negate='_not_' in data)
-            return random.choice(charset)
-
-        return self._reverse_node(chosen)
+        charset = list(charset)
+        return random.choice(charset)
 
     def _reverse_repeat_node(self, node_data):
         """Generates string matching 'min_repeat' or 'max_repeat' node
