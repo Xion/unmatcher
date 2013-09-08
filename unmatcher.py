@@ -25,7 +25,7 @@ def reverse(pattern, *args, **kwargs):
 
     :return: String that matches ``pattern``
     """
-    if isinstance(pattern, basestring):
+    if is_string(pattern):
         flags = None
     else:
         # assuming regex object
@@ -51,6 +51,10 @@ def reverse(pattern, *args, **kwargs):
 
 # Implementation
 
+IS_PY3 = sys.version[0] == '3'
+is_string = lambda x: isinstance(x, (str if IS_PY3 else basestring))
+
+
 def resolve_groupvals(sre_pattern, groupvals):
     """Resolve a dictionary of capture group values (mapped from either
     their names or indices), returning an array of those values ("mapped" only
@@ -63,14 +67,12 @@ def resolve_groupvals(sre_pattern, groupvals):
     group_count = sre_pattern.groups
     names2indices = sre_pattern.groupdict
 
-    # TODO: detect surplus keys in ``groupvals`` that do not match
-    # any actual capture group inside ``sre_pattern``
     groups = [None] * group_count
     for ref, value in groupvals.iteritems():
-        index = names2indices.get(ref, ref)
         try:
+            index = names2indices[ref] if is_string(ref) else ref
             groups[index] = value
-        except (TypeError, IndexError):
+        except (IndexError, KeyError, TypeError):
             raise ValueError("invalid capture group reference: %s" % ref)
 
     return groups
@@ -79,6 +81,7 @@ def resolve_groupvals(sre_pattern, groupvals):
 class Reversal(object):
     """Encapsulates the reversal process of a single regular expression."""
 
+    # TODO: choose among Unicode characters if using Unicode
     BUILTIN_CHARSETS = {
         'word': string.ascii_letters,
         'digit': string.digits,
@@ -97,7 +100,7 @@ class Reversal(object):
 
         # use correct string class depending on Python version or argument
         if string_class is None:
-            string_class = unicode if sys.version[0] == '2' else str
+            string_class = str if IS_PY3 else unicode
         self._str = string_class
         self._chr = unichr if string_class.__name__ == 'unicode' else chr
 
