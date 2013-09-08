@@ -57,7 +57,7 @@ def test_branch(left, right):
 
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        chars=str, str_attrs=('ascii_letters',))
-def test_charset_specified(chars):
+def test_charset_literal(chars):
     if not chars:
         return
     charset_re = re.compile('[%s]' % chars)
@@ -75,19 +75,38 @@ def test_charset_range(minchar, maxchar):
     assert minchar <= reversed_charset <= maxchar
 
 
-@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
-                       class_=str, choices='wds')
+@pytest.mark.parametrize('class_', ('w', 'd', 's'))
 def test_charset_class(class_):
-    charset_re = re.compile(r'\%s' % class_)
+    charset_re = re.compile(r'\%s' % class_.lower())
     reversed_charset = unmatcher.reverse(charset_re)
     assert bool(charset_re.match(reversed_charset))
 
 
-def test_charset_negate():
-    """[^...] is not implemented, but it should bail with known exception."""
-    charset_re = re.compile('[^abc]')
-    with pytest.raises(NotImplementedError):
-        unmatcher.reverse(charset_re)
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       chars=str, str_attrs=('ascii_letters',))
+def test_charset_negate_literal(chars):
+    if not chars:
+        return
+    charset_re = re.compile('[^%s]' % chars)
+    reversed_charset = unmatcher.reverse(charset_re)
+    assert reversed_charset not in chars
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       minchar=str, maxchar=str,
+                       fixed_length=1, str_attrs=('ascii_letters',))
+def test_charset_negate_range(minchar, maxchar):
+    minchar, maxchar = min(minchar, maxchar), max(minchar, maxchar)
+    charset_re = re.compile('[^%s-%s]' % (minchar, maxchar))
+    reversed_charset = unmatcher.reverse(charset_re)
+    assert reversed_charset < minchar or maxchar < reversed_charset
+
+
+@pytest.mark.parametrize('class_', ('w', 'd', 's'))
+def test_charset_negate_class(class_):
+    charset_re = re.compile(r'\%s' % class_.upper())
+    reversed_charset = unmatcher.reverse(charset_re)
+    assert bool(charset_re.match(reversed_charset))
 
 
 @pytest.mark.parametrize('symbol', ('+', '*'))

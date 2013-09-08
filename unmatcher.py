@@ -88,7 +88,7 @@ class Reversal(object):
 
     # TODO: choose among Unicode characters if using Unicode
     BUILTIN_CHARSETS = {
-        'word': string.ascii_letters,
+        'word': string.ascii_letters + string.digits,
         'digit': string.digits,
         'space': string.whitespace,
     }
@@ -124,6 +124,10 @@ class Reversal(object):
         """Generates string matching given node from regular expression AST."""
         if type_ == 'literal':
             return self._chr(data)
+        if type_ == 'not_literal':  # [^X], where X ia a character
+            all_chars = self._charset('any', flags=0)
+            chars = list(set(all_chars) - set(self._chr(data)))
+            return random.choice(chars)
         if type_ == 'any':
             return random.choice(self._charset('any'))
 
