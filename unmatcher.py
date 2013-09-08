@@ -125,9 +125,7 @@ class Reversal(object):
         if type_ == 'literal':
             return self._chr(data)
         if type_ == 'not_literal':  # [^X], where X ia a character
-            all_chars = self._charset('any', flags=0)
-            chars = list(set(all_chars) - set(self._chr(data)))
-            return random.choice(chars)
+            return random.choice(self._negate(self._chr(data)))
         if type_ == 'any':
             return random.choice(self._charset('any'))
 
@@ -173,16 +171,16 @@ class Reversal(object):
                 charset.update(imap(self._chr, xrange(min_char, max_char + 1)))
             elif type_ == 'category':
                 _, what = data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
-                charset.update(self._charset(what, negate='_not_' in data))
+                category_chars = self._charset(what)
+                if '_not_' in data:
+                    category_chars = self._negate(category_chars)
+                charset.update(category_chars)
             else:
-                raise ValueError("invalid choice alternative: %s" % type_)
+                raise ValueError("invalid charset alternative: %s" % type_)
 
         if negate:
-            all_chars = self._charset('any', flags=0)
-            charset = set(all_chars) - charset
-
-        charset = list(charset)
-        return random.choice(charset)
+            charset = self._negate(charset)
+        return random.choice(list(charset))
 
     def _reverse_repeat_node(self, node_data):
         """Generates string matching 'min_repeat' or 'max_repeat' node
@@ -243,9 +241,8 @@ class Reversal(object):
 
     # Handling character sets
 
-    def _charset(self, name, negate=False, flags=None):
+    def _charset(self, name, flags=None):
         """Return chars belonging to charset of given name.
-        :param negate: Whether to return a negated version of the charset
         :param flags: Optional flags override
         """
         flags = self.flags if flags is None else flags
@@ -260,10 +257,11 @@ class Reversal(object):
                 return visible_chars + self._str(" ")
 
         if name in self.BUILTIN_CHARSETS:
-            charset = self.BUILTIN_CHARSETS[name]
-            if negate:
-                all_chars = self._charset('any', flags=0)
-                charset = list(set(all_chars) - set(charset))
-            return charset
+            return self.BUILTIN_CHARSETS[name]
 
         raise ValueError("invalid charset name '%s'" % name)
+
+    def _negate(self, charset):
+        """Returns negated version of given charset."""
+        all_chars = self._charset('any', flags=0)
+        return list(set(all_chars) - set(charset))
