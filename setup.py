@@ -16,7 +16,7 @@ setup(
     description="Regular expression reverser for Python",
     long_description=__doc__,
     author=unmatcher.__author__,
-    url="http://xion.io/unmatcher",
+    url="http://github.com/Xion/unmatcher",
     license=unmatcher.__license__,
 
     classifiers=[
