@@ -141,12 +141,20 @@ class Reversal(object):
             return self._reverse_subpattern_node(data)
         if type_ == 'groupref':
             return self._reverse_groupref_node(data)
+        if type_ == 'groupref_exists':
+            # TODO: supoort these
+            raise NotImplementedError(
+                "conditional group references are not supported")
 
+        if type_ in ('assert', 'assert_not'):
+            # TODO: see whether these are in any way relevant
+            # to string generation and support them if so
+            raise NotImplementedError(
+                "lookahead/behind assertion are not supported")
         if type_ == 'at':
             return ''   # match-beginning (^) or match-end ($);
                         # irrelevant for string generation
 
-        # TODO: add support for the rest of regex syntax elements
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
 

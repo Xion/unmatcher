@@ -25,7 +25,7 @@ def test_literal(expr):
 
 
 # phrases taken from http://en.wikipedia.org/wiki/Pangram
-@pytest.mark.parametrize('phrase', (
+@pytest.mark.parametrize('phrase', [
     u"Pójdźże, kiń tę chmurność w głąb flaszy!",  # PL
     u"Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich",  # DE
     u"Pijamalı hasta yağız şoföre çabucak güvendi",  # TR
@@ -35,7 +35,7 @@ def test_literal(expr):
     (u"Nechť již hříšné saxofony ďáblů rozzvučí síň úděsnými "
      u"tóny waltzu, tanga a quickstepu."),  # CZ
     u"Ξεσκεπάζω την ψυχοφθόρα βδελυγμία.",  # GR
-))
+])
 def test_unicode_literal(phrase):
     assert phrase == unmatcher.reverse(re.escape(phrase))
 
@@ -219,6 +219,21 @@ def test_named_group_with_value(groupname, ingroup, outgroup):
     match = the_re.match(reversed_re)
     assert bool(match)
     assert match.groupdict() == {groupname: ingroup}
+
+
+@pytest.mark.parametrize('case', [
+    ('groupref_exists', r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>)'),
+    ('assert', 'abc(?=def)'),  # lookahead assertion
+    ('assert_not', 'abc(?!def)'),  # negative lookahead assertion
+    ('assert', '(?<=abc)def'),  # lookbehind assertion
+    ('assert_not', '(?<!abc)def'),  # negative lookbehind assertion
+])
+def test_explicitly_unsupported_cases(case):
+    """Explicitly unsupported cases should not fail with just generic error."""
+    node_type, regex = case
+    with pytest.raises(NotImplementedError) as e:
+        unmatcher.reverse(regex)
+    assert (": " + node_type) not in str(e)
 
 
 # Utility functions
