@@ -130,7 +130,7 @@ class Reversal(object):
             return random.choice(self._charset('any'))
 
         if type_ == 'in':
-            return self._reverse_charset_node(data)
+            return self._reverse_in_node(data)
         if type_ == 'branch':
             return self._reverse_branch_node(data)
 
@@ -142,9 +142,7 @@ class Reversal(object):
         if type_ == 'groupref':
             return self._reverse_groupref_node(data)
         if type_ == 'groupref_exists':
-            # TODO: supoort these
-            raise NotImplementedError(
-                "conditional group references are not supported")
+            return self._reverse_groupref_exists_node(data)
 
         if type_ in ('assert', 'assert_not'):
             # TODO: see whether these are in any way relevant
@@ -158,7 +156,7 @@ class Reversal(object):
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
 
-    def _reverse_charset_node(self, node_data):
+    def _reverse_in_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
 
         This node matches a specified set of characters. Typically,
@@ -239,7 +237,7 @@ class Reversal(object):
     def _reverse_groupref_node(self, node_data):
         """Generates string matching 'groupref' node in regular expr. AST.
 
-        This node is a (back)reference to previously matched capture group.
+        This node is a backreference to previously matched capture group.
         """
         # AST always refers to capture groups by index,
         # and detects circular/forward references at parse time,
@@ -247,12 +245,27 @@ class Reversal(object):
         index = node_data
         return self.groups[index]
 
+    def _reverse_groupref_exists_node(self, node_data):
+        """Generates string matching 'groupref_exists' node in regexp. AST.
+
+        This node is a conditional test for one of the previously matched
+        capture groups. Depending on whether group was matched or not,
+        different subexpressions are matched next.
+        """
+        index, yes_pattern, no_pattern = node_data
+
+        if self.groups[index] is not None:
+            return self._reverse_nodes(yes_pattern)
+        else:
+            return self._reverse_nodes(no_pattern) if no_pattern else ""
+
     # Handling character sets
 
     def _charset(self, name, flags=None):
         """Return chars belonging to charset of given name.
         :param flags: Optional flags override
         """
+        # FIXME: take re.LOCALE, re.UNICODE & re.IGNORECASE flags into account
         flags = self.flags if flags is None else flags
 
         if name == 'any':

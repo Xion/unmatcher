@@ -222,7 +222,6 @@ def test_named_group_with_value(groupname, ingroup, outgroup):
 
 
 @pytest.mark.parametrize('case', [
-    ('groupref_exists', r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>)'),
     ('assert', 'abc(?=def)'),  # lookahead assertion
     ('assert_not', 'abc(?!def)'),  # negative lookahead assertion
     ('assert', '(?<=abc)def'),  # lookbehind assertion
