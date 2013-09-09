@@ -221,6 +221,54 @@ def test_named_group_with_value(groupname, ingroup, outgroup):
     assert match.groupdict() == {groupname: ingroup}
 
 
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
+                       **str_args('condgroup', 'yesgroup', 'nogroup'))
+def test_group_condition(condgroup, yesgroup, nogroup):
+    the_re = re.compile('(%s)?((?(1)%s|%s))' % (condgroup, yesgroup, nogroup))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groups() in [(condgroup, yesgroup), (None, nogroup)]
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       **str_args('condgroup', 'yesgroup'))
+def test_group_condition_with_value(condgroup, yesgroup):
+    the_re = re.compile('(%s)?((?(1)%s))' % (condgroup, yesgroup))
+    reversed_re = unmatcher.reverse(the_re, condgroup)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert match.groups() in [(condgroup, yesgroup), (None, "")]
+
+
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
+                       **str_args('groupname', 'condgroup', 'yesgroup', 'nogroup'))
+def test_named_group_condition(groupname, condgroup, yesgroup, nogroup):
+    groupname = 'a' + groupname  # cannot start with digit
+    the_re = re.compile(
+        '(?P<{groupname}>{condgroup})?((?({groupname}){yesgroup}|{nogroup}))'
+        .format(**locals()))
+    reversed_re = unmatcher.reverse(the_re)
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert (match.group(groupname), match.group(2)) in [(condgroup, yesgroup),
+                                                        (None, nogroup)]
+
+
+@pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
+                       **str_args('groupname', 'condgroup', 'yesgroup'))
+def test_named_group_condition_with_value(groupname, condgroup, yesgroup):
+    groupname = 'a' + groupname  # cannot start with digit
+    the_re = re.compile(
+        '(?P<{groupname}>{condgroup})?((?({groupname}){yesgroup}))'
+        .format(**locals()))
+    reversed_re = unmatcher.reverse(the_re, **{groupname: condgroup})
+    match = the_re.match(reversed_re)
+    assert bool(match)
+    assert (match.group(groupname), match.group(2)) in [(condgroup, yesgroup),
+                                                        (None, "")]
+
+
 @pytest.mark.parametrize('case', [
     ('assert', 'abc(?=def)'),  # lookahead assertion
     ('assert_not', 'abc(?!def)'),  # negative lookahead assertion
