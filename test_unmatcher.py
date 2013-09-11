@@ -41,10 +41,24 @@ def test_unicode_literal(phrase):
 
 
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT, **str_arg('expr'))
-def test_literal_ignorecase(expr):
+def test_literal__ignorecase(expr):
     literal_re = re.compile(expr, re.IGNORECASE)
     reversed_re = unmatcher.reverse(literal_re)
     assert expr.lower() == reversed_re.lower()
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       fixed_length=1, **str_arg('char'))
+def test_not_literal(char):
+    assert char != unmatcher.reverse('[^%s]' % re.escape(char))
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       fixed_length=1, **str_arg('char'))
+def test_not_literal__ignore_case(char):
+    literal_re = re.compile('[^%s]' % re.escape(char), re.IGNORECASE)
+    reversed_re = unmatcher.reverse(literal_re)
+    assert reversed_re not in (char.lower(), char.upper())
 
 
 @pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)

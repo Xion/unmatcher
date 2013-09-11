@@ -124,8 +124,8 @@ class Reversal(object):
         """Generates string matching given node from regular expression AST."""
         if type_ == 'literal':
             return self._reverse_literal_node(data)
-        if type_ == 'not_literal':  # [^X], where X ia a character
-            return random.choice(self._negate(self._chr(data)))
+        if type_ == 'not_literal':
+            return self._reverse_not_literal_node(data)
         if type_ == 'any':
             return random.choice(self._charset('any'))
 
@@ -159,14 +159,25 @@ class Reversal(object):
     def _reverse_literal_node(self, node_data):
         """Generates string matching the 'literal' node from regexp. AST.
 
-        This matches a literal character, a behavior which might optionally
+        This node matches a literal character, a behavior which may optionally
         be modified by certain regular expressions flags.
         """
         char = self._chr(node_data)
         if self.flags & re.IGNORECASE:
-            case_func = random.choice((self._str.upper, self._str.lower))
+            case_func = random.choice((self._str.lower, self._str.upper))
             char = case_func(char)
         return char
+
+    def _reverse_not_literal_node(self, node_data):
+        """Generates string matching the 'not_literal' node from regexp. AST.
+
+        This node matches characters *expect* for given one, which corresponds
+        to ``[^X]`` syntax, where ``X`` is a character.
+        """
+        excluded = self._chr(node_data)
+        if self.flags & re.IGNORECASE:
+            excluded = (excluded.lower(), excluded.upper())
+        return random.choice(self._negate(excluded))
 
     def _reverse_in_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
