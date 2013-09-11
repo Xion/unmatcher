@@ -62,9 +62,16 @@ def test_not_literal__ignore_case(char):
 
 
 @pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
-@pytest.mark.parametrize('flags', (0, re.DOTALL))
-def test_any(_, flags):
-    dot_re = re.compile('.', flags)
+def test_any(_):
+    dot_re = re.compile('.')
+    reversed_dot = unmatcher.reverse(dot_re)
+    assert bool(dot_re.match(reversed_dot))
+    assert reversed_dot != "\n"
+
+
+@pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
+def test_any__dotall(_):
+    dot_re = re.compile('.', re.DOTALL)
     reversed_dot = unmatcher.reverse(dot_re)
     assert bool(dot_re.match(reversed_dot))
 

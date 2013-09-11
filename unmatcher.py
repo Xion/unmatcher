@@ -288,17 +288,14 @@ class Reversal(object):
         """Return chars belonging to charset of given name.
         :param flags: Optional flags override
         """
-        # FIXME: take re.LOCALE, re.UNICODE & re.IGNORECASE flags into account
+        # FIXME: take re.LOCALE and re.UNICODE flags into account
         flags = self.flags if flags is None else flags
 
         if name == 'any':
-            if flags & re.DOTALL:
-                return string.printable
-            else:
-                visible_chars = self._str().join(
-                    v for k, v in self.BUILTIN_CHARSETS.iteritems()
-                    if k != 'space')
-                return visible_chars + self._str(" ")
+            all_chars = string.printable
+            if not (flags & re.DOTALL):
+                all_chars = all_chars.replace("\n", "")
+            return all_chars
 
         if name in self.BUILTIN_CHARSETS:
             return self.BUILTIN_CHARSETS[name]
