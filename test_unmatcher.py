@@ -40,6 +40,13 @@ def test_unicode_literal(phrase):
     assert phrase == unmatcher.reverse(re.escape(phrase))
 
 
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT, **str_arg('expr'))
+def test_literal_ignorecase(expr):
+    literal_re = re.compile(expr, re.IGNORECASE)
+    reversed_re = unmatcher.reverse(literal_re)
+    assert expr.lower() == reversed_re.lower()
+
+
 @pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
 @pytest.mark.parametrize('flags', (0, re.DOTALL))
 def test_any(_, flags):

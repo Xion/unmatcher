@@ -123,7 +123,7 @@ class Reversal(object):
     def _reverse_node(self, (type_, data)):
         """Generates string matching given node from regular expression AST."""
         if type_ == 'literal':
-            return self._chr(data)
+            return self._reverse_literal_node(data)
         if type_ == 'not_literal':  # [^X], where X ia a character
             return random.choice(self._negate(self._chr(data)))
         if type_ == 'any':
@@ -155,6 +155,18 @@ class Reversal(object):
 
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
+
+    def _reverse_literal_node(self, node_data):
+        """Generates string matching the 'literal' node from regexp. AST.
+
+        This matches a literal character, a behavior which might optionally
+        be modified by certain regular expressions flags.
+        """
+        char = self._chr(node_data)
+        if self.flags & re.IGNORECASE:
+            case_func = random.choice((self._str.upper, self._str.lower))
+            char = case_func(char)
+        return char
 
     def _reverse_in_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
