@@ -6,15 +6,18 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-try:
+# TODO: include Python 3 as target in Travis builds
+import sys
+IS_PY3 = sys.version[0] == '3'
+if IS_PY3:
+    imap = map
+    xrange = range
+else:
     from itertools import imap
-except ImportError:
-    imap = map  # Python 3
 
 import random
 import re
 import string
-import sys
 
 
 __all__ = ['reverse']
@@ -56,7 +59,6 @@ def reverse(pattern, *args, **kwargs):
 
 # Implementation
 
-IS_PY3 = sys.version[0] == '3'
 is_string = lambda x: isinstance(x, (str if IS_PY3 else basestring))
 
 
@@ -73,7 +75,7 @@ def resolve_groupvals(sre_pattern, groupvals):
     names2indices = sre_pattern.groupdict
 
     groups = [None] * group_count
-    for ref, value in groupvals.iteritems():
+    for ref, value in groupvals.items():
         try:
             index = names2indices[ref] if is_string(ref) else ref
             groups[index] = value
@@ -120,8 +122,10 @@ class Reversal(object):
         """
         return self._str().join(imap(self._reverse_node, nodes))
 
-    def _reverse_node(self, (type_, data)):
+    def _reverse_node(self, node):
         """Generates string matching given node from regular expression AST."""
+        type_, data = node
+
         if type_ == 'literal':
             return self._reverse_literal_node(data)
         if type_ == 'not_literal':

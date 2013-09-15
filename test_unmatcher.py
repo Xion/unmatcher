@@ -315,4 +315,4 @@ def test_explicitly_unsupported_cases(case):
 
 def chunks(seq, n):
     """Split a ``seq``\ uence into chunks of length ``n``."""
-    return (seq[i:i+n] for i in xrange(0, len(seq), n)) if len(seq) > 0 else ()
+    return (seq[i:i+n] for i in range(0, len(seq), n)) if len(seq) > 0 else ()
