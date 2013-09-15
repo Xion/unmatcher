@@ -6,7 +6,6 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-# TODO: include Python 3 as target in Travis builds
 import sys
 IS_PY3 = sys.version[0] == '3'
 if IS_PY3:
