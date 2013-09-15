@@ -2,6 +2,8 @@
 """
 Tests for the unmatcher module.
 """
+from __future__ import unicode_literals
+
 import re
 
 import unmatcher
@@ -26,15 +28,15 @@ def test_literal(expr):
 
 # phrases taken from http://en.wikipedia.org/wiki/Pangram
 @pytest.mark.parametrize('phrase', [
-    u"Pójdźże, kiń tę chmurność w głąb flaszy!",  # PL
-    u"Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich",  # DE
-    u"Pijamalı hasta yağız şoföre çabucak güvendi",  # TR
-    u"Flygande bäckasiner söka strax hwila på mjuka tuvor.",  # SE
-    (u"El veloz murciélago hindú comía feliz cardillo y kiwi. "
-     u"La cigüeña tocaba el saxofón detrás del palenque de paja."),  # ES
-    (u"Nechť již hříšné saxofony ďáblů rozzvučí síň úděsnými "
-     u"tóny waltzu, tanga a quickstepu."),  # CZ
-    u"Ξεσκεπάζω την ψυχοφθόρα βδελυγμία.",  # GR
+    "Pójdźże, kiń tę chmurność w głąb flaszy!",  # PL
+    "Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich",  # DE
+    "Pijamalı hasta yağız şoföre çabucak güvendi",  # TR
+    "Flygande bäckasiner söka strax hwila på mjuka tuvor.",  # SE
+    ("El veloz murciélago hindú comía feliz cardillo y kiwi. "
+     "La cigüeña tocaba el saxofón detrás del palenque de paja."),  # ES
+    ("Nechť již hříšné saxofony ďáblů rozzvučí síň úděsnými "
+     "tóny waltzu, tanga a quickstepu."),  # CZ
+    "Ξεσκεπάζω την ψυχοφθόρα βδελυγμία.",  # GR
 ])
 def test_unicode_literal(phrase):
     assert phrase == unmatcher.reverse(re.escape(phrase))
