@@ -235,8 +235,8 @@ class Reversal(object):
         between several variants. However, each variant here can consist
         of more then one node.
         """
-        # TODO: figure out what the first value is; for all typical expressions
-        # (a|bb|c, etc.) it seems to be always ``None``
+        # first value is always ``None`` due to quirk in ``sre_parse`` module;
+        # for reference, see `sre_parse.py` (line 357) in Python's stdlib
         _, variants = node_data
 
         nodes = random.choice(variants)
