@@ -220,7 +220,8 @@ class Reversal(object):
 
         This node matches a repetition of pattern matched by its child node.
         """
-        # TODO: make sure if ``[what]`` is always a 1-element list
+        # ``[what]`` is always a 1-element list due to quirk in ``sre_parse``;
+        # for reference, see `sre_parse.py` (lines 503-514) in Python's stdlib
         min_count, max_count, [what] = node_data
 
         max_count = min(max_count, self.MAX_REPEAT)
