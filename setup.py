@@ -14,7 +14,7 @@ setup(
     name="unmatcher",
     version=unmatcher.__version__,
     description="Regular expression reverser for Python",
-    long_description=__doc__,
+    long_description=open('README.rst').read(),
     author=unmatcher.__author__,
     url="http://github.com/Xion/unmatcher",
     license=unmatcher.__license__,
