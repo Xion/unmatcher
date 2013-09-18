@@ -8,5 +8,5 @@ python:
 
 install:
     - python ./setup.py install
-    - pip install --use-mirrors pytest pytest-quickcheck
+    - pip install -r requirements-dev.txt --use-mirrors
 script: py.test

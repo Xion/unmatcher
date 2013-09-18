@@ -32,5 +32,5 @@ setup(
     platforms='any',
     py_modules=['unmatcher'],
 
-    tests_require=['pytest', 'pytest-quickcheck'],
+    tests_require=open('requirements-dev.txt').readlines(),
 )
