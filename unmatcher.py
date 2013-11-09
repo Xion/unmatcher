@@ -6,15 +6,22 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-try:
-    from itertools import imap
-except ImportError:
-    imap = map  # Python 3
-
+from collections import defaultdict
 import random
 import re
 import string
 import sys
+import unicodedata
+
+
+# Python 2/3 compatibility shims
+IS_PY3 = sys.version[0] == '3'
+if IS_PY3:
+    imap = map
+    unichr = chr
+    xrange = range
+else:
+    from itertools import imap
 
 
 __all__ = ['reverse']
@@ -56,7 +63,6 @@ def reverse(pattern, *args, **kwargs):
 
 # Implementation
 
-IS_PY3 = sys.version[0] == '3'
 is_string = lambda x: isinstance(x, (str if IS_PY3 else basestring))
 
 
