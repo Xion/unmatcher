@@ -6,12 +6,10 @@ __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-from collections import defaultdict
 import random
 import re
 import string
 import sys
-import unicodedata
 
 
 # Python 2/3 compatibility shims
