@@ -1,7 +1,7 @@
 """
 unmatcher :: Regular expression reverser for Python
 """
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
@@ -79,7 +79,7 @@ def resolve_groupvals(sre_pattern, groupvals):
     names2indices = sre_pattern.groupdict
 
     groups = [None] * group_count
-    for ref, value in groupvals.iteritems():
+    for ref, value in groupvals.items():
         try:
             index = names2indices[ref] if is_string(ref) else ref
             groups[index] = value
@@ -126,12 +126,14 @@ class Reversal(object):
         """
         return self._str().join(imap(self._reverse_node, nodes))
 
-    def _reverse_node(self, (type_, data)):
+    def _reverse_node(self, node):
         """Generates string matching given node from regular expression AST."""
+        type_, data = node
+
         if type_ == 'literal':
-            return self._chr(data)
-        if type_ == 'not_literal':  # [^X], where X ia a character
-            return random.choice(self._negate(self._chr(data)))
+            return self._reverse_literal_node(data)
+        if type_ == 'not_literal':
+            return self._reverse_not_literal_node(data)
         if type_ == 'any':
             return random.choice(self._charset('any'))
 
@@ -161,6 +163,29 @@ class Reversal(object):
 
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
+
+    def _reverse_literal_node(self, node_data):
+        """Generates string matching the 'literal' node from regexp. AST.
+
+        This node matches a literal character, a behavior which may optionally
+        be modified by certain regular expressions flags.
+        """
+        char = self._chr(node_data)
+        if self.flags & re.IGNORECASE:
+            case_func = random.choice((self._str.lower, self._str.upper))
+            char = case_func(char)
+        return char
+
+    def _reverse_not_literal_node(self, node_data):
+        """Generates string matching the 'not_literal' node from regexp. AST.
+
+        This node matches characters *expect* for given one, which corresponds
+        to ``[^X]`` syntax, where ``X`` is a character.
+        """
+        excluded = self._chr(node_data)
+        if self.flags & re.IGNORECASE:
+            excluded = (excluded.lower(), excluded.upper())
+        return random.choice(self._negate(excluded))
 
     def _reverse_in_node(self, node_data):
         """Generates string matching 'in' node from regular expr. AST.
@@ -200,7 +225,8 @@ class Reversal(object):
 
         This node matches a repetition of pattern matched by its child node.
         """
-        # TODO: make sure if ``[what]`` is always a 1-element list
+        # ``[what]`` is always a 1-element list due to quirk in ``sre_parse``;
+        # for reference, see `sre_parse.py` (lines 503-514) in Python's stdlib
         min_count, max_count, [what] = node_data
 
         max_count = min(max_count, self.MAX_REPEAT)
@@ -214,8 +240,8 @@ class Reversal(object):
         between several variants. However, each variant here can consist
         of more then one node.
         """
-        # TODO: figure out what the first value is; for all typical expressions
-        # (a|bb|c, etc.) it seems to be always ``None``
+        # first value is always ``None`` due to quirk in ``sre_parse`` module;
+        # for reference, see `sre_parse.py` (line 357) in Python's stdlib
         _, variants = node_data
 
         nodes = random.choice(variants)
@@ -271,17 +297,14 @@ class Reversal(object):
         """Return chars belonging to charset of given name.
         :param flags: Optional flags override
         """
-        # FIXME: take re.LOCALE, re.UNICODE & re.IGNORECASE flags into account
+        # FIXME: take re.LOCALE and re.UNICODE flags into account
         flags = self.flags if flags is None else flags
 
         if name == 'any':
-            if flags & re.DOTALL:
-                return string.printable
-            else:
-                visible_chars = self._str().join(
-                    v for k, v in self.BUILTIN_CHARSETS.iteritems()
-                    if k != 'space')
-                return visible_chars + self._str(" ")
+            all_chars = string.printable
+            if not (flags & re.DOTALL):
+                all_chars = all_chars.replace("\n", "")
+            return all_chars
 
         if name in self.BUILTIN_CHARSETS:
             return self.BUILTIN_CHARSETS[name]

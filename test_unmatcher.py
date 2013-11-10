@@ -2,6 +2,8 @@
 """
 Tests for the unmatcher module.
 """
+from __future__ import unicode_literals
+
 import re
 
 import unmatcher
@@ -26,24 +28,52 @@ def test_literal(expr):
 
 # phrases taken from http://en.wikipedia.org/wiki/Pangram
 @pytest.mark.parametrize('phrase', [
-    u"Pójdźże, kiń tę chmurność w głąb flaszy!",  # PL
-    u"Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich",  # DE
-    u"Pijamalı hasta yağız şoföre çabucak güvendi",  # TR
-    u"Flygande bäckasiner söka strax hwila på mjuka tuvor.",  # SE
-    (u"El veloz murciélago hindú comía feliz cardillo y kiwi. "
-     u"La cigüeña tocaba el saxofón detrás del palenque de paja."),  # ES
-    (u"Nechť již hříšné saxofony ďáblů rozzvučí síň úděsnými "
-     u"tóny waltzu, tanga a quickstepu."),  # CZ
-    u"Ξεσκεπάζω την ψυχοφθόρα βδελυγμία.",  # GR
+    "Pójdźże, kiń tę chmurność w głąb flaszy!",  # PL
+    "Victor jagt zwölf Boxkämpfer quer über den großen Sylter Deich",  # DE
+    "Pijamalı hasta yağız şoföre çabucak güvendi",  # TR
+    "Flygande bäckasiner söka strax hwila på mjuka tuvor.",  # SE
+    ("El veloz murciélago hindú comía feliz cardillo y kiwi. "
+     "La cigüeña tocaba el saxofón detrás del palenque de paja."),  # ES
+    ("Nechť již hříšné saxofony ďáblů rozzvučí síň úděsnými "
+     "tóny waltzu, tanga a quickstepu."),  # CZ
+    "Ξεσκεπάζω την ψυχοφθόρα βδελυγμία.",  # GR
 ])
 def test_unicode_literal(phrase):
     assert phrase == unmatcher.reverse(re.escape(phrase))
 
 
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT, **str_arg('expr'))
+def test_literal__ignorecase(expr):
+    literal_re = re.compile(expr, re.IGNORECASE)
+    reversed_re = unmatcher.reverse(literal_re)
+    assert expr.lower() == reversed_re.lower()
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       fixed_length=1, **str_arg('char'))
+def test_not_literal(char):
+    assert char != unmatcher.reverse('[^%s]' % re.escape(char))
+
+
+@pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
+                       fixed_length=1, **str_arg('char'))
+def test_not_literal__ignore_case(char):
+    literal_re = re.compile('[^%s]' % re.escape(char), re.IGNORECASE)
+    reversed_re = unmatcher.reverse(literal_re)
+    assert reversed_re not in (char.lower(), char.upper())
+
+
 @pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
-@pytest.mark.parametrize('flags', (0, re.DOTALL))
-def test_any(_, flags):
-    dot_re = re.compile('.', flags)
+def test_any(_):
+    dot_re = re.compile('.')
+    reversed_dot = unmatcher.reverse(dot_re)
+    assert bool(dot_re.match(reversed_dot))
+    assert reversed_dot != "\n"
+
+
+@pytest.mark.randomize(_=int, ncalls=DEFAULT_TESTS_COUNT)
+def test_any__dotall(_):
+    dot_re = re.compile('.', re.DOTALL)
     reversed_dot = unmatcher.reverse(dot_re)
     assert bool(dot_re.match(reversed_dot))
 
@@ -287,4 +317,4 @@ def test_explicitly_unsupported_cases(case):
 
 def chunks(seq, n):
     """Split a ``seq``\ uence into chunks of length ``n``."""
-    return (seq[i:i+n] for i in xrange(0, len(seq), n)) if len(seq) > 0 else ()
+    return (seq[i:i+n] for i in range(0, len(seq), n)) if len(seq) > 0 else ()
