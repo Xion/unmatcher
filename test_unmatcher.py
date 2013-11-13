@@ -180,6 +180,8 @@ def test_repeat_range(lower_bound, upper_bound, char):
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        **str_args('ingroup', 'outgroup'))
 def test_noncapture_group(ingroup, outgroup):
+    if not ingroup:
+        return
     the_re = re.compile('(?:%s)%s' % (ingroup, outgroup))
     reversed_re = unmatcher.reverse(the_re)
     match = the_re.match(reversed_re)
@@ -190,6 +192,8 @@ def test_noncapture_group(ingroup, outgroup):
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        **str_args('ingroup', 'outgroup'))
 def test_group_sans_backrefs(ingroup, outgroup):
+    if not ingroup:
+        return
     the_re = re.compile('(%s)%s' % (ingroup, outgroup))
     reversed_re = unmatcher.reverse(the_re)
     match = the_re.match(reversed_re)
@@ -200,6 +204,8 @@ def test_group_sans_backrefs(ingroup, outgroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'ingroup', 'outgroup'))
 def test_named_group_sans_backrefs(groupname, ingroup, outgroup):
+    if not (groupname and ingroup):
+        return
     groupname = 'a' + groupname  # cannot start with digit
     the_re = re.compile('(?P<%s>%s)%s' % (groupname, ingroup, outgroup))
     reversed_re = unmatcher.reverse(the_re)
@@ -211,6 +217,8 @@ def test_named_group_sans_backrefs(groupname, ingroup, outgroup):
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        **str_args('ingroup', 'outgroup'))
 def test_group_with_backrefs(ingroup, outgroup):
+    if not ingroup:
+        return
     the_re = re.compile(r'(%s)%s\1' % (ingroup, outgroup))
     reversed_re = unmatcher.reverse(the_re)
     match = the_re.match(reversed_re)
@@ -221,6 +229,8 @@ def test_group_with_backrefs(ingroup, outgroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'ingroup', 'outgroup'))
 def test_named_group_with_backrefs(groupname, ingroup, outgroup):
+    if not (groupname and ingroup):
+        return
     groupname = 'a' + groupname  # cannot start with digit
     the_re = re.compile(
         '(?P<%s>%s)%s(?P=%s)' % (groupname, ingroup, outgroup, groupname))
@@ -233,6 +243,8 @@ def test_named_group_with_backrefs(groupname, ingroup, outgroup):
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        **str_args('ingroup', 'outgroup'))
 def test_group_with_value(ingroup, outgroup):
+    if not ingroup:
+        return
     the_re = re.compile(r'(.*)%s' % outgroup)
     reversed_re = unmatcher.reverse(the_re, ingroup)
     match = the_re.match(reversed_re)
@@ -243,6 +255,8 @@ def test_group_with_value(ingroup, outgroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'ingroup', 'outgroup'))
 def test_named_group_with_value(groupname, ingroup, outgroup):
+    if not (groupname and ingroup):
+        return
     groupname = 'a' + groupname  # cannot start with digit
     the_re = re.compile(r'(?P<%s>.*)%s' % (groupname, outgroup))
     reversed_re = unmatcher.reverse(the_re, **{groupname: ingroup})
@@ -254,6 +268,8 @@ def test_named_group_with_value(groupname, ingroup, outgroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('condgroup', 'yesgroup', 'nogroup'))
 def test_group_condition(condgroup, yesgroup, nogroup):
+    if not condgroup:
+        return
     the_re = re.compile('(%s)?((?(1)%s|%s))' % (condgroup, yesgroup, nogroup))
     reversed_re = unmatcher.reverse(the_re)
     match = the_re.match(reversed_re)
@@ -264,6 +280,8 @@ def test_group_condition(condgroup, yesgroup, nogroup):
 @pytest.mark.randomize(ncalls=DEFAULT_TESTS_COUNT,
                        **str_args('condgroup', 'yesgroup'))
 def test_group_condition_with_value(condgroup, yesgroup):
+    if not condgroup:
+        return
     the_re = re.compile('(%s)?((?(1)%s))' % (condgroup, yesgroup))
     reversed_re = unmatcher.reverse(the_re, condgroup)
     match = the_re.match(reversed_re)
@@ -274,6 +292,8 @@ def test_group_condition_with_value(condgroup, yesgroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'condgroup', 'yesgroup', 'nogroup'))
 def test_named_group_condition(groupname, condgroup, yesgroup, nogroup):
+    if not condgroup:
+        return
     groupname = 'a' + groupname  # cannot start with digit
     the_re = re.compile(
         '(?P<{groupname}>{condgroup})?((?({groupname}){yesgroup}|{nogroup}))'
@@ -288,6 +308,8 @@ def test_named_group_condition(groupname, condgroup, yesgroup, nogroup):
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
                        **str_args('groupname', 'condgroup', 'yesgroup'))
 def test_named_group_condition_with_value(groupname, condgroup, yesgroup):
+    if not condgroup:
+        return
     groupname = 'a' + groupname  # cannot start with digit
     the_re = re.compile(
         '(?P<{groupname}>{condgroup})?((?({groupname}){yesgroup}))'
