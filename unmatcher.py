@@ -311,5 +311,5 @@ class Reversal(object):
 
     def _negate(self, charset):
         """Returns negated version of given charset."""
-        all_chars = self._charset('any', flags=0)
+        all_chars = self._charset('any')
         return list(set(all_chars) - set(charset))
