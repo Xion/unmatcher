@@ -15,6 +15,14 @@ in automatic generation of test cases for string processing functions.
 Status
 ~~~~~~
 
+.. image:: https://badge.fury.io/py/unmatcher.png
+   :alt: PyPI package version
+   :target: http://badge.fury.io/py/unmatcher
+
+.. image:: https://pypip.in/d/unmatcher/badge.png
+   :alt: PyPI package download count
+   :target: https://crate.io/packages/unmatcher
+
 .. image:: https://secure.travis-ci.org/Xion/unmatcher.png
    :alt: Build Status
    :target: http://travis-ci.org/Xion/unmatcher
