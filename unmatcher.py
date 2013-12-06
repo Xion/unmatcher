@@ -1,22 +1,25 @@
 """
 unmatcher :: Regular expression reverser for Python
 """
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __author__ = "Karol Kuczmarski"
 __license__ = "Simplified BSD"
 
 
-import sys
-IS_PY3 = sys.version[0] == '3'
-if IS_PY3:
-    imap = map
-    xrange = range
-else:
-    from itertools import imap
-
 import random
 import re
 import string
+import sys
+
+
+# Python 2/3 compatibility shims
+IS_PY3 = sys.version[0] == '3'
+if IS_PY3:
+    imap = map
+    unichr = chr
+    xrange = range
+else:
+    from itertools import imap
 
 
 __all__ = ['reverse']
@@ -308,5 +311,5 @@ class Reversal(object):
 
     def _negate(self, charset):
         """Returns negated version of given charset."""
-        all_chars = self._charset('any', flags=0)
+        all_chars = self._charset('any')
         return list(set(all_chars) - set(charset))

@@ -2,5 +2,7 @@
 *.egg-info
 dist
 
+.tox
+
 *.sublime-*
 .ropeproject
