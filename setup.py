@@ -31,6 +31,4 @@ setup(
 
     platforms='any',
     py_modules=['unmatcher'],
-
-    tests_require=open('requirements-dev.txt').readlines(),
 )

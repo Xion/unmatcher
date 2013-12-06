@@ -8,5 +8,5 @@ python:
 
 install:
     - python ./setup.py install
-    - pip install -r requirements-dev.txt --use-mirrors
+    - pip install -r requirements-test.txt --use-mirrors
 script: py.test
