@@ -177,7 +177,7 @@ class Reversal(object):
     def _reverse_not_literal_node(self, node_data):
         """Generates string matching the 'not_literal' node from regexp. AST.
 
-        This node matches characters *expect* for given one, which corresponds
+        This node matches characters *except* for given one, which corresponds
         to ``[^X]`` syntax, where ``X`` is a character.
         """
         excluded = self._chr(node_data)
@@ -234,7 +234,7 @@ class Reversal(object):
     def _reverse_branch_node(self, node_data):
         """Generates string matching 'branch' node in regular expr. AST.
 
-        This node is similar to 'in', in a sens that it's also an alternative
+        This node is similar to 'in', in a sense that it's also an alternative
         between several variants. However, each variant here can consist
         of more then one node.
         """
@@ -249,7 +249,7 @@ class Reversal(object):
         """Generates string matching 'subpattern' node in regular expr. AST.
 
         This node corresponds to parenthesised group inside the expression.
-        If this is a capture group, the reversed result is memorized
+        If this is a capture group, the reversed result is memorized,
         so that it can be used when referring back to the capture through
         ``\1``, etc.
         """
