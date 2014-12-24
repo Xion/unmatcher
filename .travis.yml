@@ -10,3 +10,4 @@ install:
     - python ./setup.py install
     - pip install -r requirements-test.txt --use-mirrors
 script: py.test
+sudo: false
