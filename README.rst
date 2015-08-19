@@ -5,30 +5,29 @@ unmatcher
 
     *Given a regular expression, find any string that matches the expression.*
 
-Although very doable when talking about regexes known from computational linguistics,
-the real world regular expressions are much more powerful to allow for that... easily.
-
-Why do that, though? Well, mostly just because. One possible application could be
-in automatic generation of test cases for string processing functions.
+Why? Mostly just because. But one possible application is to generate test data for string processing functions.
 
 
 Status
 ~~~~~~
 
-.. image:: https://badge.fury.io/py/unmatcher.png
+|Version| |License| |Build Status|
+
+.. |Version| image:: https://badge.fury.io/py/unmatcher.png
    :alt: PyPI package version
    :target: http://badge.fury.io/py/unmatcher
-
-.. image:: https://pypip.in/d/unmatcher/badge.png
-   :alt: PyPI package download count
-   :target: https://crate.io/packages/unmatcher
-
-.. image:: https://secure.travis-ci.org/Xion/unmatcher.png
+.. |License| image:: https://img.shields.io/pypi/l/unmatcher.svg?style=flat
+    :target: https://github.com/Xion/unmatcher/blob/master/LICENSE
+    :alt: License
+.. |Build Status| image:: https://secure.travis-ci.org/Xion/unmatcher.png
    :alt: Build Status
    :target: http://travis-ci.org/Xion/unmatcher
 
 Most typical elements of regexes are supported:
-``*``, ``+``, ``|``, ``( )`` (capture groups), ``\d|\w|\s`` (character classes), ``[]`` (character sets).
+
+* multipliers: ``*``, ``+``
+* capture groups: ``|``, ``( )`` (including backreferences)
+* character classes (``\d|\w|\s`` etc.) and character sets (``[]``)
 
 
 API
@@ -54,4 +53,4 @@ and keyword arguments for named groups::
     >>> print unmatcher.reverse('(?P<foo>\w+)__(?P=foo)', foo='bar')
     bar__bar
 
-Note that predefined value is *not* validated against actual subexpression for the capture group.
+Note that a predefined value is *not* validated against actual subexpression for the capture group.
