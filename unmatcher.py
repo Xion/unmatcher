@@ -92,7 +92,7 @@ class Reversal(object):
 
     # TODO: choose among Unicode characters if using Unicode
     BUILTIN_CHARSETS = {
-        'word': string.ascii_letters + string.digits,
+        'word': string.ascii_letters + string.digits + '_',
         'digit': string.digits,
         'space': string.whitespace,
     }
