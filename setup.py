@@ -83,7 +83,7 @@ setup(
     description="Regular expression reverser for Python",
     long_description=open('README.rst').read(),
     author=tags['author'],
-    url="http://github.com/Xion/unmatcher",
+    url="https://github.com/Xion/unmatcher",
     license=tags['license'],
 
     classifiers=[
@@ -92,6 +92,11 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Software Development :: Testing",
         "Topic :: Text Processing :: General",
     ],
