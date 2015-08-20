@@ -11,5 +11,6 @@ install:
     - python ./setup.py install
     - pip install -r requirements-test.txt --use-mirrors
     - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install -r requirements-test-py26.txt --use-mirrors; fi
+
 script: py.test
 sudo: false
