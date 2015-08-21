@@ -22,7 +22,7 @@ else:
     from itertools import imap
 
 
-__all__ = ['reverse']
+__all__ = ['reverse', 'ReversalError']
 
 
 def reverse(pattern, *args, **kwargs):
@@ -49,14 +49,34 @@ def reverse(pattern, *args, **kwargs):
     groupvals = kwargs or {}
     for i, value in enumerate(args, 1):
         if i in groupvals:
-            raise TypeError(
+            raise ReversalError(
+                pattern,
                 "reverse() got multiple values for capture group '%s'" % i)
         groupvals[i] = value
-    groups = resolve_groupvals(sre_subpattern.pattern, groupvals)
+    try:
+        groups = resolve_groupvals(sre_subpattern.pattern, groupvals)
+    except ValueError as e:
+        raise ReversalError(pattern, str(e))
 
+    # perform the reversal using the expression's AST and capture group values
     reversal = Reversal(sre_subpattern.data, flags=flags, groups=groups,
                         string_class=type(pattern))
-    return reversal.perform()
+    try:
+        return reversal.perform()
+    except ValueError as e:
+        raise ReversalError(pattern, str(e))
+
+
+class ReversalError(ValueError):
+    """Exception raised when an error has occurred
+    while reversing a regular expression.
+    """
+    def __init__(self, pattern, message=None):
+        self.pattern = pattern
+
+        if message is None:
+            message = "unknown error while reversing pattern: %s" % (pattern,)
+        super(ReversalError, self).__init__(message)
 
 
 # Implementation
@@ -81,7 +101,7 @@ def resolve_groupvals(sre_pattern, groupvals):
         try:
             index = names2indices[ref] if is_string(ref) else ref
             groups[index] = value
-        except (IndexError, KeyError, TypeError):
+        except (LookupError, TypeError):
             raise ValueError("invalid capture group reference: %s" % ref)
 
     return groups
