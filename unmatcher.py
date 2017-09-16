@@ -148,34 +148,34 @@ class Reversal(object):
         """Generates string matching given node from regular expression AST."""
         type_, data = node
 
-        if type_ == 'literal':
+        if type_ == re.sre_parse.LITERAL:
             return self._reverse_literal_node(data)
-        if type_ == 'not_literal':
+        if type_ == re.sre_parse.NOT_LITERAL:
             return self._reverse_not_literal_node(data)
-        if type_ == 'any':
+        if type_ == re.sre_parse.ANY:
             return random.choice(self._charset('any'))
 
-        if type_ == 'in':
+        if type_ == re.sre_parse.IN:
             return self._reverse_in_node(data)
-        if type_ == 'branch':
+        if type_ == re.sre_parse.BRANCH:
             return self._reverse_branch_node(data)
 
-        if type_ in ('min_repeat', 'max_repeat'):
+        if type_ in (re.sre_parse.MIN_REPEAT, re.sre_parse.MAX_REPEAT):
             return self._reverse_repeat_node(data)
 
-        if type_ == 'subpattern':
+        if type_ == re.sre_parse.SUBPATTERN:
             return self._reverse_subpattern_node(data)
-        if type_ == 'groupref':
+        if type_ == re.sre_parse.GROUPREF:
             return self._reverse_groupref_node(data)
-        if type_ == 'groupref_exists':
+        if type_ == re.sre_parse.GROUPREF_EXISTS:
             return self._reverse_groupref_exists_node(data)
 
-        if type_ in ('assert', 'assert_not'):
+        if type_ in (re.sre_parse.ASSERT, re.sre_parse.ASSERT_NOT):
             # TODO: see whether these are in any way relevant
             # to string generation and support them if so
             raise NotImplementedError(
                 "lookahead/behind assertion are not supported")
-        if type_ == 'at':
+        if type_ == re.sre_parse.AT:
             # match-beginning (^) or match-end ($);
             # irrelevant for string generation
             return ''
@@ -184,7 +184,8 @@ class Reversal(object):
             "unsupported regular expression element: %s" % type_)
 
     def _reverse_literal_node(self, node_data):
-        """Generates string matching the 'literal' node from regexp. AST.
+        """Generates string matching the ``sre_parse.LITERAL`` node
+        from regexp. AST.
 
         This node matches a literal character, a behavior which may optionally
         be modified by certain regular expressions flags.
@@ -196,7 +197,8 @@ class Reversal(object):
         return char
 
     def _reverse_not_literal_node(self, node_data):
-        """Generates string matching the 'not_literal' node from regexp. AST.
+        """Generates string matching the ``sre_parse.NOT_LITERAL`` node
+        from regexp. AST.
 
         This node matches characters *except* for given one, which corresponds
         to ``[^X]`` syntax, where ``X`` is a character.
@@ -207,25 +209,27 @@ class Reversal(object):
         return random.choice(self._negate(excluded))
 
     def _reverse_in_node(self, node_data):
-        """Generates string matching 'in' node from regular expr. AST.
+        """Generates string matching the ``sre_parse.IN`` node
+        from regular expr. AST.
 
         This node matches a specified set of characters. Typically,
         it is expressed using the ``[...]`` notation, but it can also arise
         from simple uses of ``|`` operator, where all branches match
         just one, literal character (e.g. ``a|b|c``).
         """
-        negate = node_data[0][0] == 'negate'
+        negate = str(node_data[0][0]).lower() == 'negate'
         if negate:
             node_data = node_data[1:]
 
         charset = set()
         for type_, data in node_data:
-            if type_ == 'literal':
+            if type_ == re.sre_parse.LITERAL:
                 charset.add(self._chr(data))
-            elif type_ == 'range':
+            elif type_ == re.sre_parse.RANGE:
                 min_char, max_char = data
                 charset.update(imap(self._chr, xrange(min_char, max_char + 1)))
-            elif type_ == 'category':
+            elif type_ == re.sre_parse.CATEGORY:
+                data = str(data).lower()  # for Python 3.5+
                 _, what = data.rsplit('_', 1)  # category(_not)?_(digit|etc.)
                 category_chars = self._charset(what)
                 if '_not_' in data:
@@ -239,8 +243,8 @@ class Reversal(object):
         return random.choice(list(charset))
 
     def _reverse_repeat_node(self, node_data):
-        """Generates string matching 'min_repeat' or 'max_repeat' node
-        from regular expression AST.
+        """Generates string matching ``sre_parse.MIN_REPEAT``
+        or ``sre_parse.MAX_REPEAT`` node from regular expression AST.
 
         This node matches a repetition of pattern matched by its child node.
         """
@@ -253,7 +257,8 @@ class Reversal(object):
         return self._reverse_nodes([what] * count)
 
     def _reverse_branch_node(self, node_data):
-        """Generates string matching 'branch' node in regular expr. AST.
+        """Generates string matching the ``sre_parse.BRANCH`` node
+        in regular expr. AST.
 
         This node is similar to 'in', in a sense that it's also an alternative
         between several variants. However, each variant here can consist
@@ -267,7 +272,8 @@ class Reversal(object):
         return self._reverse_nodes(nodes)
 
     def _reverse_subpattern_node(self, node_data):
-        """Generates string matching 'subpattern' node in regular expr. AST.
+        """Generates string matching the ``sre_parse.SUBPATTERN`` node
+        in regular expr. AST.
 
         This node corresponds to parenthesised group inside the expression.
         If this is a capture group, the reversed result is memorized,
@@ -286,7 +292,8 @@ class Reversal(object):
         return result
 
     def _reverse_groupref_node(self, node_data):
-        """Generates string matching 'groupref' node in regular expr. AST.
+        """Generates string matching the ``sre_parse.GROUPREF`` node
+        in regular expr. AST.
 
         This node is a backreference to previously matched capture group.
         """
@@ -297,7 +304,8 @@ class Reversal(object):
         return self.groups[index]
 
     def _reverse_groupref_exists_node(self, node_data):
-        """Generates string matching 'groupref_exists' node in regexp. AST.
+        """Generates string matching the ``sre_parse.GROUPREF_EXISTS`` node
+        in regexp. AST.
 
         This node is a conditional test for one of the previously matched
         capture groups. Depending on whether group was matched or not,
