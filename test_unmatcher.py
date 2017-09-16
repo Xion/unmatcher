@@ -290,7 +290,8 @@ def test_group_condition_with_value(condgroup, yesgroup):
 
 
 @pytest.mark.randomize(ncalls=SMALL_TESTS_COUNT,
-                       **str_args('groupname', 'condgroup', 'yesgroup', 'nogroup'))
+                       **str_args('groupname', 'condgroup',
+                                  'yesgroup', 'nogroup'))
 def test_named_group_condition(groupname, condgroup, yesgroup, nogroup):
     if not condgroup:
         return
@@ -339,4 +340,6 @@ def test_explicitly_unsupported_cases(case):
 
 def chunks(seq, n):
     """Split a ``seq``\ uence into chunks of length ``n``."""
-    return (seq[i:i+n] for i in range(0, len(seq), n)) if len(seq) > 0 else ()
+    if not seq:
+        return ()
+    return (seq[i:i + n] for i in range(0, len(seq), n))

@@ -176,8 +176,9 @@ class Reversal(object):
             raise NotImplementedError(
                 "lookahead/behind assertion are not supported")
         if type_ == 'at':
-            return ''   # match-beginning (^) or match-end ($);
-                        # irrelevant for string generation
+            # match-beginning (^) or match-end ($);
+            # irrelevant for string generation
+            return ''
 
         raise NotImplementedError(
             "unsupported regular expression element: %s" % type_)
@@ -225,7 +226,7 @@ class Reversal(object):
                 min_char, max_char = data
                 charset.update(imap(self._chr, xrange(min_char, max_char + 1)))
             elif type_ == 'category':
-                _, what = data.rsplit('_', 1)  # category(_not)?_(digit|word|etc)
+                _, what = data.rsplit('_', 1)  # category(_not)?_(digit|etc.)
                 category_chars = self._charset(what)
                 if '_not_' in data:
                     category_chars = self._negate(category_chars)
