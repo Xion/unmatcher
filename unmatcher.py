@@ -280,7 +280,8 @@ class Reversal(object):
         so that it can be used when referring back to the capture through
         ``\1``, etc.
         """
-        index, nodes = node_data
+        index = node_data[0]
+        nodes = node_data[-1]
 
         if index is None:
             return self._reverse_nodes(nodes)  # non-capture group
